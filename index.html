@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Digor — Commerces de Bréhat</title>
+  <link rel="icon" type="image/svg+xml" href="blason-brehat.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Digor">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sea: #1a3a4a;
+      --sea-light: #2a5468;
+      --sand: #e8dcc8;
+      --sand-light: #f5f0e8;
+      --granite: #6b7280;
+      --open: #2d6a4f;
+      --closed: #9b2335;
+      --accent: #c0844a;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand-light);
+      color: var(--sea);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--sea);
+      color: var(--sand);
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .header-home {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+
+    .header-home a {
+      color: #9ab0bc;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(154,176,188,0.4);
+      padding-bottom: 1px;
+      transition: color 0.2s;
+    }
+
+    .header-home a:hover { color: var(--sand); }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .header-title img {
+      height: 48px;
+      width: auto;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      color: var(--sand);
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: #9ab0bc;
+      margin-top: 0.25rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .date-nav button {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--sand);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .date-nav button:hover { background: rgba(255,255,255,0.2); }
+
+    #date-display {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--sand);
+      min-width: 220px;
+      text-align: center;
+      text-transform: capitalize;
+    }
+
+    main { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; }
+
+    /* --- Section titre --- */
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--sea);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    /* --- Grille commerces --- */
+    #commerce-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .commerce-card {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: 0 1px 4px rgba(26,58,74,0.08);
+      border-left: 4px solid var(--granite);
+      transition: box-shadow 0.2s;
+      position: relative;
+    }
+
+    .commerce-card:hover { box-shadow: 0 4px 14px rgba(26,58,74,0.12); }
+
+    .commerce-card.open-now { border-left-color: var(--open); }
+    .commerce-card.closed-now { border-left-color: var(--closed); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .commerce-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--sea);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-open { background: #d4edda; color: var(--open); }
+    .status-closed { background: #f8d7da; color: var(--closed); }
+    .status-unknown { background: #e9ecef; color: var(--granite); }
+
+    .commerce-hours {
+      margin-top: 0.55rem;
+      font-size: 0.82rem;
+      color: var(--granite);
+      line-height: 1.5;
+    }
+
+    .commerce-phone {
+      margin-top: 0.4rem;
+      font-size: 0.82rem;
+      color: var(--sea-light);
+    }
+
+    .commerce-phone a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .commerce-phone a:hover { text-decoration: underline; }
+
+    .loading-card {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: 0 1px 4px rgba(26,58,74,0.08);
+      border-left: 4px solid #ddd;
+      color: var(--granite);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* --- Carte --- */
+    #map-section { margin-bottom: 2.5rem; }
+
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(26,58,74,0.12);
+      margin-top: 1rem;
+    }
+
+    /* --- Infos utiles --- */
+    #infos-section { margin-bottom: 2rem; }
+
+    .info-group {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 4px rgba(26,58,74,0.07);
+    }
+
+    .info-group h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      color: var(--sea);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #f0ebe0;
+      font-size: 0.85rem;
+    }
+
+    .info-item:last-child { border-bottom: none; }
+
+    .info-label { color: var(--sea); font-weight: 500; }
+
+    .info-value { color: var(--granite); text-align: right; }
+
+    .info-value a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .info-value a:hover { text-decoration: underline; }
+
+    .hours-block {
+      font-size: 0.8rem;
+      color: var(--granite);
+      margin-top: 0.5rem;
+      line-height: 1.7;
+    }
+
+    /* --- Avertissement Google --- */
+    .disclaimer {
+      background: #f0ebe0;
+      border: 1px solid #ddd3ba;
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      font-size: 0.78rem;
+      color: #6b5c3e;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .disclaimer strong { color: var(--sea); }
+
+    /* --- Config key --- */
+    #key-warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      color: #856404;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      /* Header */
+      header { padding: 1.25rem 1rem 1rem; }
+      .header-title img { height: 36px; }
+      header h1 { font-size: 1.5rem; }
+      header p { font-size: 0.75rem; }
+      #date-display { font-size: 0.95rem; min-width: 170px; }
+      .date-nav button { width: 32px; height: 32px; font-size: 0.9rem; }
+
+      /* Main */
+      main { padding: 1.25rem 0.75rem; }
+
+      /* Commerces */
+      #commerce-list { grid-template-columns: 1fr; gap: 0.75rem; }
+      .commerce-card { padding: 0.9rem 1rem; }
+      .commerce-name { font-size: 0.95rem; }
+
+      /* Carte */
+      #map { height: 280px; border-radius: 8px; }
+
+      /* Infos utiles */
+      .info-group { padding: 1rem; }
+      .info-item { flex-direction: column; gap: 0.2rem; padding: 0.5rem 0; }
+      .info-value { text-align: left; }
+
+      /* Numéros tappables */
+      .info-value a[href^="tel"] { font-size: 1rem; display: inline-block; padding: 0.15rem 0; }
+      .commerce-phone a { font-size: 0.9rem; }
+
+      .section-title { font-size: 1.05rem; }
+      .disclaimer { font-size: 0.75rem; padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-home"><a href="https://www.didoune.com">Didoune.com</a></div>
+  <div class="header-title">
+    <img src="blason-brehat.svg" alt="Blason de Bréhat" />
+    <h1>Digor</h1>
+  </div>
+  <p>Commerces ouverts à Bréhat</p>
+  <div class="date-nav">
+    <button id="prev-day" title="Jour précédent">&#8592;</button>
+    <span id="date-display"></span>
+    <button id="next-day" title="Jour suivant">&#8594;</button>
+  </div>
+</header>
+
+<main>
+
+  <div id="key-warning">
+    Remplace <code>VOTRE_CLE_API</code> en haut du fichier JS par ta clé Google Maps.
+  </div>
+
+  <!-- 1. Commerces -->
+  <div style="margin-bottom:0.75rem">
+    <span class="section-title">Commerces</span>
+  </div>
+  <div id="commerce-list">
+    <div class="loading-card">Chargement des horaires...</div>
+  </div>
+
+  <!-- 2. Carte -->
+  <div id="map-section">
+    <span class="section-title">Sur la carte</span>
+    <div id="map"></div>
+  </div>
+
+  <!-- 3. Infos utiles -->
+  <div id="infos-section">
+    <span class="section-title">Infos utiles</span>
+
+    <div class="info-group">
+      <h3>Huîtres</h3>
+      <div class="info-item">
+        <span class="info-label">Huîtres de Bréhat — Arthur Daigre</span>
+        <span class="info-value"><a href="tel:0786471010">07 86 47 10 10</a></span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <h3>Transports</h3>
+      <div class="info-item">
+        <span class="info-label">Tax'Ile</span>
+        <span class="info-value"><a href="tel:0686778546">06 86 77 85 46</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">La Barge</span>
+        <span class="info-value"><a href="tel:0296209606">02 96 20 96 06</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Bréhat Marine</span>
+        <span class="info-value"><a href="tel:0296200580">02 96 20 05 80</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Vedettes de Bréhat</span>
+        <span class="info-value"><a href="tel:0296557950">02 96 55 79 50</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Compagnie Sur Mer</span>
+        <span class="info-value"><a href="tel:0637659171">06 37 65 91 71</a></span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <h3>Santé &amp; Urgences</h3>
+      <div class="info-item">
+        <span class="info-label">Dr Hélène Lacroix</span>
+        <span class="info-value">
+          <a href="tel:0296550037">02 96 55 00 37</a>
+          <div class="hours-block">
+            Lun–Sam (sauf jeu) : 10h–12h<br>
+            Lun–Ven : 17h–18h
+          </div>
+        </span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Pompiers</span>
+        <span class="info-value"><a href="tel:18">18</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Urgences en mer</span>
+        <span class="info-value">196 — VHF canal 16</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Police municipale</span>
+        <span class="info-value"><a href="tel:0617415817">06 17 41 58 17</a></span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <h3>Services</h3>
+      <div class="info-item">
+        <span class="info-label">Mairie</span>
+        <span class="info-value">
+          <a href="tel:0296200036">02 96 20 00 36</a>
+          <div class="hours-block">
+            Lun, Mar, Ven : 9h–12h / 14h–16h<br>
+            Mer, Jeu : 9h–12h<br>
+            Urgences hors horaires : <a href="tel:0617415817">06 17 41 58 17</a>
+          </div>
+        </span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Office du Tourisme</span>
+        <span class="info-value"><a href="tel:0296200415">02 96 20 04 15</a></span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <h3>Déchetterie</h3>
+      <div class="info-item" style="flex-direction:column; align-items:flex-start;">
+        <span class="info-label" style="margin-bottom:0.4rem">1er juillet – 16 août</span>
+        <div class="hours-block">
+          Particuliers : mer, jeu, ven + dernier sam du mois — 13h45–16h15<br>
+          Professionnels : mar — 13h45–16h15
+        </div>
+      </div>
+      <div class="info-item" style="flex-direction:column; align-items:flex-start; border-bottom:none;">
+        <span class="info-label" style="margin-bottom:0.4rem">17 août – 30 juin</span>
+        <div class="hours-block">
+          Particuliers : jeu + dernier sam du mois — 13h45–16h15<br>
+          Professionnels : mar — 13h45–16h15
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Source :</strong> Les horaires et informations des commerces proviennent de Google Maps. Ils peuvent être incomplets, erronés ou ne pas refléter les fermetures exceptionnelles. Vérifiez directement auprès des établissements avant de vous déplacer.
+  </div>
+
+</main>
+
+<script>
+  // =============================================
+  // REMPLACE ICI TA CLÉ API (ne pas partager)
+  // =============================================
+  const API_KEY = 'VOTRE_CLE_API';
+  // =============================================
+
+  const PLACES = [
+    { name: "Le Pain de Sucre",   id: "ChIJIa8XaRMPEkgRvoTtwRKFp_A" },
+    { name: "L'Alegoat",          id: "ChIJkb12iAEQEkgRZf3zp0m3yvE" },
+    { name: "La Potinière",       id: "ChIJ1S-OIFUFEkgR6GQ8KzAVcMA" },
+    { name: "Le 22",              id: "ChIJfadwMpwREkgR-CwE61MU_sU" },
+    { name: "Bellevue",           id: "ChIJ12oME6oaEkgR-puWcvDcVyk" },
+    { name: "Carrefour Market",   id: "ChIJkVtjPtIPEkgRqV5iZ68xJJA" },
+    { name: "Bréhat Services",    id: "ChIJ7d6eBQAREkgRlW_zdFzWCAM" },
+    { name: "La Bréhatine",       id: "ChIJtYImAcEPEkgRb323CQuX4E4" },
+    { name: "Crech Kerio",        id: "ChIJL-c-ZAAQEkgRPR9uUZ7xFaQ" },
+    { name: "Shamrock",           id: "ChIJ58f9HP4PEkgROVRK9un-xZk" },
+    { name: "L'Archipel",         id: "ChIJO2e-OxwREkgRqNPkK9PXfRw" },
+    { name: "Les Verreries",      id: "ChIJqcr_VKgaEkgRjPTw_gzgsEQ" },
+    { name: "Dalibot",            id: "ChIJIdF3pwAQEkgRTz_6E8_Rtb8" },
+    { name: "L'Equipage",         id: "ChIJ58f9HP4PEkgRq0lERbLX12c" },
+    { name: "L'Epicerie",         id: "ChIJNVgOAwIQEkgR6kTg5GyLQwc" }
+  ];
+
+  const DAY_NAMES = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  const MONTH_NAMES = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+  let currentDate = new Date();
+  currentDate.setHours(0,0,0,0);
+
+  function formatDate(d) {
+    return `${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function updateDateDisplay() {
+    document.getElementById('date-display').textContent = formatDate(currentDate);
+  }
+
+  document.getElementById('prev-day').addEventListener('click', () => {
+    currentDate.setDate(currentDate.getDate() - 1);
+    updateDateDisplay();
+    loadAllPlaces();
+  });
+
+  document.getElementById('next-day').addEventListener('click', () => {
+    currentDate.setDate(currentDate.getDate() + 1);
+    updateDateDisplay();
+    loadAllPlaces();
+  });
+
+  updateDateDisplay();
+
+  // Vérif clé API
+  if (API_KEY === 'VOTRE_CLE_API') {
+    document.getElementById('key-warning').style.display = 'block';
+  }
+
+  // Chargement Places API via SDK JS
+  let map, service, infoWindow;
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat: 48.844, lng: -3.006 },
+      zoom: 14,
+      styles: [
+        { featureType: "water", stylers: [{ color: "#a8c8d8" }] },
+        { featureType: "landscape", stylers: [{ color: "#f5f0e8" }] },
+        { featureType: "road", stylers: [{ color: "#ddd3ba" }] }
+      ]
+    });
+    service = new google.maps.places.PlacesService(map);
+    infoWindow = new google.maps.InfoWindow();
+    loadAllPlaces();
+  }
+
+  function getDayHours(openingHours, targetDate) {
+    if (!openingHours || !openingHours.weekday_text) return null;
+    const dayIdx = targetDate.getDay(); // 0=dim
+    // weekday_text commence lundi=0 dans l'API, dimanche=6
+    const apiIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+    return openingHours.weekday_text[apiIdx] || null;
+  }
+
+  function isOpenOnDay(openingHours, targetDate) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    if (targetDate.getTime() === today.getTime()) {
+      return openingHours?.open_now ?? null;
+    }
+    const hours = getDayHours(openingHours, targetDate);
+    if (!hours) return null;
+    const lower = hours.toLowerCase();
+    if (lower.includes('fermé') || lower.includes('closed')) return false;
+    return true;
+  }
+
+  const placeData = {};
+
+  function loadAllPlaces() {
+    const list = document.getElementById('commerce-list');
+    list.innerHTML = '<div class="loading-card">Chargement des horaires...</div>';
+
+    const promises = PLACES.map(p => new Promise((resolve) => {
+      service.getDetails({
+        placeId: p.id,
+        fields: ['name', 'opening_hours', 'formatted_phone_number', 'geometry']
+      }, (result, status) => {
+        resolve({ place: p, result, status });
+      });
+    }));
+
+    Promise.all(promises).then(results => {
+      list.innerHTML = '';
+      results.forEach(({ place, result, status }) => {
+        placeData[place.id] = { result, status };
+        const card = buildCard(place, result, status);
+        list.appendChild(card);
+        if (status === 'OK' && result.geometry) {
+          addMarker(place.name, result, map, infoWindow);
+        }
+      });
+    });
+  }
+
+  function buildCard(place, result, status) {
+    const card = document.createElement('div');
+    card.className = 'commerce-card';
+
+    if (status !== 'OK') {
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="commerce-name">${place.name}</span>
+          <span class="status-badge status-unknown">Indisponible</span>
+        </div>
+        <div class="commerce-hours">Impossible de récupérer les informations.</div>`;
+      return card;
+    }
+
+    const oh = result.opening_hours;
+    const isOpen = isOpenOnDay(oh, currentDate);
+    const hours = getDayHours(oh, currentDate);
+    const phone = result.formatted_phone_number;
+
+    let statusClass = '', statusLabel = '', badgeClass = '';
+    if (isOpen === true) {
+      statusClass = 'open-now'; statusLabel = 'Ouvert'; badgeClass = 'status-open';
+    } else if (isOpen === false) {
+      statusClass = 'closed-now'; statusLabel = 'Fermé'; badgeClass = 'status-closed';
+    } else {
+      statusLabel = 'Horaires non renseignés'; badgeClass = 'status-unknown';
+    }
+
+    card.classList.add(statusClass);
+
+    // Nettoyer le texte de l'API (ex: "Lundi: 09:00 – 19:00" → "09:00 – 19:00")
+    let hoursText = '';
+    if (hours) {
+      const colonIdx = hours.indexOf(':');
+      hoursText = colonIdx !== -1 ? hours.substring(colonIdx + 1).trim() : hours;
+    }
+
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="commerce-name">${result.name || place.name}</span>
+        <span class="status-badge ${badgeClass}">${statusLabel}</span>
+      </div>
+      ${hoursText ? `<div class="commerce-hours">${hoursText}</div>` : ''}
+      ${phone ? `<div class="commerce-phone"><a href="tel:${phone.replace(/\s/g,'')}">${phone}</a></div>` : ''}
+    `;
+    return card;
+  }
+
+  function addMarker(name, result, map, infoWindow) {
+    const marker = new google.maps.Marker({
+      map,
+      position: result.geometry.location,
+      title: name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#c0844a',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2
+      }
+    });
+
+    marker.addListener('click', () => {
+      const oh = result.opening_hours;
+      const phone = result.formatted_phone_number;
+      const isOpen = isOpenOnDay(oh, currentDate);
+      const status = isOpen === true ? '<span style="color:#2d6a4f;font-weight:500">Ouvert</span>'
+                   : isOpen === false ? '<span style="color:#9b2335;font-weight:500">Fermé</span>'
+                   : '';
+      infoWindow.setContent(`
+        <div style="font-family:'DM Sans',sans-serif;padding:4px 2px;min-width:140px">
+          <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${result.name || name}</div>
+          ${status}
+          ${phone ? `<div style="margin-top:4px;font-size:0.82rem"><a href="tel:${phone.replace(/\s/g,'')}" style="color:#c0844a">${phone}</a></div>` : ''}
+        </div>
+      `);
+      infoWindow.open(map, marker);
+    });
+  }
+</script>
+
+<!-- Chargement Google Maps JS API avec Places -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=VOTRE_CLE_API&libraries=places&callback=initMap"
+  async defer>
+</script>
+
+</body>
+</html>
