@@ -358,7 +358,7 @@
 <main>
 
   <div id="key-warning">
-    Remplace <code></code> en haut du fichier JS par ta clé Google Maps.
+    Remplace <code>VOTRE_CLE_API</code> en haut du fichier JS par ta clé Google Maps.
   </div>
 
   <!-- 1. Commerces -->
@@ -701,7 +701,7 @@
       statusLabel = 'Horaires non renseignés'; badgeClass = 'status-unknown';
     }
 
-    card.classList.add(statusClass);
+    if (statusClass) card.classList.add(statusClass);
 
     // Nettoyer le texte de l'API (ex: "Lundi: 09:00 – 19:00" → "09:00 – 19:00")
     let hoursText = '';
@@ -757,7 +757,7 @@
 
 <!-- Chargement Google Maps JS API avec Places -->
 <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCr0WexFyIPWQWv-VJiofIvqOVk76bDIpw&libraries=places&callback=initMap"
+  src="https://maps.googleapis.com/maps/api/js?key=VOTRE_CLE_API&libraries=places&callback=initMap"
   async defer>
 </script>
 
