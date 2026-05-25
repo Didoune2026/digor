@@ -358,7 +358,7 @@
 <main>
 
   <div id="key-warning">
-    Remplace <code></code> en haut du fichier JS par ta clé Google Maps.
+    Remplace <code>VOTRE_CLE_API</code> en haut du fichier JS par ta clé Google Maps.
   </div>
 
   <!-- 1. Commerces -->
@@ -485,7 +485,7 @@
   // =============================================
   // REMPLACE ICI TA CLÉ API (ne pas partager)
   // =============================================
-  const API_KEY = 'AIzaSyBQT_7Kvfh9XZWl0NAu8khJZcYRczyWU1g';
+  const API_KEY = 'VOTRE_CLE_API';
   // =============================================
 
   const PLACES = [
@@ -535,7 +535,7 @@
   updateDateDisplay();
 
   // Vérif clé API
-  if (API_KEY === AIzaSyBQT_7Kvfh9XZWl0NAu8khJZcYRczyWU1g) {
+  if (API_KEY === 'VOTRE_CLE_API') {
     document.getElementById('key-warning').style.display = 'block';
   }
 
@@ -580,8 +580,57 @@
 
   const placeData = {};
 
+  // Cache : clé = date YYYY-MM-DD, expire à minuit
+  const CACHE_KEY = 'digor_cache';
+
+  function getCacheKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  }
+
+  function loadCache() {
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const { key, data } = JSON.parse(raw);
+      if (key !== getCacheKey()) return null;
+      return data;
+    } catch(e) { return null; }
+  }
+
+  function saveCache(data) {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ key: getCacheKey(), data }));
+    } catch(e) {}
+  }
+
   function loadAllPlaces() {
     const list = document.getElementById('commerce-list');
+
+    // Essayer le cache d'abord
+    const cached = loadCache();
+    if (cached) {
+      list.innerHTML = '';
+      cached.forEach(({ place, result, status }) => {
+        placeData[place.id] = { result, status };
+        const card = buildCard(place, result, status);
+        list.appendChild(card);
+        // Pour les marqueurs depuis le cache, reconstruire la position manuellement
+        if (status === 'OK' && result && result.geometry && result.geometry.location) {
+          const fakeResult = Object.assign({}, result, {
+            geometry: {
+              location: new google.maps.LatLng(
+                result.geometry.location.lat,
+                result.geometry.location.lng
+              )
+            }
+          });
+          addMarker(place.name, fakeResult, map, infoWindow);
+        }
+      });
+      return;
+    }
+
     list.innerHTML = '<div class="loading-card">Chargement des horaires...</div>';
 
     const promises = PLACES.map(p => new Promise((resolve) => {
@@ -594,6 +643,24 @@
     }));
 
     Promise.all(promises).then(results => {
+      // Sérialiser pour le cache (geometry n'est pas sérialisable directement)
+      const serializable = results.map(({ place, result, status }) => ({
+        place,
+        status,
+        result: result ? {
+          name: result.name,
+          formatted_phone_number: result.formatted_phone_number,
+          opening_hours: result.opening_hours,
+          geometry: result.geometry ? {
+            location: {
+              lat: result.geometry.location.lat(),
+              lng: result.geometry.location.lng()
+            }
+          } : null
+        } : null
+      }));
+      saveCache(serializable);
+
       list.innerHTML = '';
       results.forEach(({ place, result, status }) => {
         placeData[place.id] = { result, status };
@@ -690,7 +757,7 @@
 
 <!-- Chargement Google Maps JS API avec Places -->
 <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQT_7Kvfh9XZWl0NAu8khJZcYRczyWU1g&libraries=places&callback=initMap"
+  src="https://maps.googleapis.com/maps/api/js?key=VOTRE_CLE_API&libraries=places&callback=initMap"
   async defer>
 </script>
 
