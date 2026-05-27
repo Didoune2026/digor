@@ -10,6 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
       --sea: #1a3a4a;
@@ -30,6 +32,15 @@
       background: var(--sand-light);
       color: var(--sea);
       min-height: 100vh;
+    }
+
+    /* Mention horaires */
+    .hours-notice {
+      font-size: 0.75rem;
+      color: var(--granite);
+      font-style: italic;
+      margin-bottom: 1rem;
+      margin-top: -0.25rem;
     }
 
     header {
@@ -122,7 +133,6 @@
 
     main { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; }
 
-    /* --- Section titre --- */
     .section-title {
       font-family: 'Playfair Display', serif;
       font-size: 1.2rem;
@@ -133,7 +143,6 @@
       display: inline-block;
     }
 
-    /* --- Grille commerces --- */
     #commerce-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -148,11 +157,9 @@
       box-shadow: 0 1px 4px rgba(26,58,74,0.08);
       border-left: 4px solid var(--granite);
       transition: box-shadow 0.2s;
-      position: relative;
     }
 
     .commerce-card:hover { box-shadow: 0 4px 14px rgba(26,58,74,0.12); }
-
     .commerce-card.open-now { border-left-color: var(--open); }
     .commerce-card.closed-now { border-left-color: var(--closed); }
 
@@ -170,6 +177,13 @@
       color: var(--sea);
     }
 
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
     .status-badge {
       font-size: 0.7rem;
       font-weight: 500;
@@ -178,12 +192,28 @@
       padding: 0.2rem 0.55rem;
       border-radius: 20px;
       white-space: nowrap;
-      flex-shrink: 0;
     }
 
     .status-open { background: #d4edda; color: var(--open); }
     .status-closed { background: #f8d7da; color: var(--closed); }
-    .status-unknown { background: #e9ecef; color: var(--granite); }
+
+    .toggle-week {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--granite);
+      font-size: 0.75rem;
+      padding: 0.15rem 0.3rem;
+      border-radius: 4px;
+      transition: color 0.2s, transform 0.25s;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .toggle-week:hover { color: var(--accent); }
+    .toggle-week.open { transform: rotate(180deg); }
 
     .commerce-hours {
       margin-top: 0.55rem;
@@ -192,10 +222,16 @@
       line-height: 1.5;
     }
 
+    .commerce-note {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-style: italic;
+    }
+
     .commerce-phone {
       margin-top: 0.4rem;
       font-size: 0.82rem;
-      color: var(--sea-light);
     }
 
     .commerce-phone a {
@@ -205,18 +241,40 @@
 
     .commerce-phone a:hover { text-decoration: underline; }
 
-    .loading-card {
-      background: var(--white);
-      border-radius: 10px;
-      padding: 1.1rem 1.25rem;
-      box-shadow: 0 1px 4px rgba(26,58,74,0.08);
-      border-left: 4px solid #ddd;
-      color: var(--granite);
-      font-size: 0.85rem;
-      font-style: italic;
+    /* Semaine dépliable */
+    .week-schedule {
+      display: none;
+      margin-top: 0.75rem;
+      border-top: 1px solid #f0ebe0;
+      padding-top: 0.65rem;
     }
 
-    /* --- Carte --- */
+    .week-schedule.visible { display: block; }
+
+    .week-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      padding: 0.18rem 0;
+      gap: 0.5rem;
+    }
+
+    .week-day {
+      color: var(--sea);
+      font-weight: 500;
+      min-width: 80px;
+      text-transform: capitalize;
+    }
+
+    .week-day.today {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .week-hours { color: var(--granite); text-align: right; }
+    .week-hours.closed { color: var(--closed); }
+
+    /* Carte */
     #map-section { margin-bottom: 2.5rem; }
 
     #map {
@@ -228,7 +286,7 @@
       margin-top: 1rem;
     }
 
-    /* --- Infos utiles --- */
+    /* Infos utiles */
     #infos-section { margin-bottom: 2rem; }
 
     .info-group {
@@ -259,9 +317,7 @@
     }
 
     .info-item:last-child { border-bottom: none; }
-
     .info-label { color: var(--sea); font-weight: 500; }
-
     .info-value { color: var(--granite); text-align: right; }
 
     .info-value a {
@@ -279,7 +335,6 @@
       line-height: 1.7;
     }
 
-    /* --- Avertissement Google --- */
     .disclaimer {
       background: #f0ebe0;
       border: 1px solid #ddd3ba;
@@ -293,47 +348,29 @@
 
     .disclaimer strong { color: var(--sea); }
 
-    /* --- Config key --- */
-    #key-warning {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
+    .leaflet-popup-content-wrapper {
       border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.85rem;
-      color: #856404;
-      display: none;
+      box-shadow: 0 2px 10px rgba(26,58,74,0.15);
     }
 
     @media (max-width: 600px) {
-      /* Header */
+      .top-notice { font-size: 0.7rem; padding: 0.5rem 0.75rem; }
       header { padding: 1.25rem 1rem 1rem; }
       .header-title img { height: 36px; }
       header h1 { font-size: 1.5rem; }
       header p { font-size: 0.75rem; }
       #date-display { font-size: 0.95rem; min-width: 170px; }
       .date-nav button { width: 32px; height: 32px; font-size: 0.9rem; }
-
-      /* Main */
       main { padding: 1.25rem 0.75rem; }
-
-      /* Commerces */
       #commerce-list { grid-template-columns: 1fr; gap: 0.75rem; }
       .commerce-card { padding: 0.9rem 1rem; }
       .commerce-name { font-size: 0.95rem; }
-
-      /* Carte */
       #map { height: 280px; border-radius: 8px; }
-
-      /* Infos utiles */
       .info-group { padding: 1rem; }
       .info-item { flex-direction: column; gap: 0.2rem; padding: 0.5rem 0; }
       .info-value { text-align: left; }
-
-      /* Numéros tappables */
       .info-value a[href^="tel"] { font-size: 1rem; display: inline-block; padding: 0.15rem 0; }
       .commerce-phone a { font-size: 0.9rem; }
-
       .section-title { font-size: 1.05rem; }
       .disclaimer { font-size: 0.75rem; padding: 0.75rem 1rem; }
     }
@@ -357,25 +394,17 @@
 
 <main>
 
-  <div id="key-warning">
-    Remplace <code>VOTRE_CLE_API</code> en haut du fichier JS par ta clé Google Maps.
-  </div>
-
-  <!-- 1. Commerces -->
   <div style="margin-bottom:0.75rem">
     <span class="section-title">Commerces</span>
+    <div class="hours-notice">Horaires relevés sur Google Maps en mai 2026, susceptibles de modification selon la saison.</div>
   </div>
-  <div id="commerce-list">
-    <div class="loading-card">Chargement des horaires...</div>
-  </div>
+  <div id="commerce-list"></div>
 
-  <!-- 2. Carte -->
   <div id="map-section">
     <span class="section-title">Sur la carte</span>
     <div id="map"></div>
   </div>
 
-  <!-- 3. Infos utiles -->
   <div id="infos-section">
     <span class="section-title">Infos utiles</span>
 
@@ -454,6 +483,16 @@
         <span class="info-label">Office du Tourisme</span>
         <span class="info-value"><a href="tel:0296200415">02 96 20 04 15</a></span>
       </div>
+      <div class="info-item">
+        <span class="info-label">La Poste</span>
+        <span class="info-value">
+          <a href="tel:3631">3631</a>
+          <div class="hours-block">
+            Lun–Ven : 9h45–12h00<br>
+            Sam–Dim : Fermé
+          </div>
+        </span>
+      </div>
     </div>
 
     <div class="info-group">
@@ -476,38 +515,108 @@
   </div>
 
   <div class="disclaimer">
-    <strong>Source :</strong> Les horaires et informations des commerces proviennent de Google Maps. Ils peuvent être incomplets, erronés ou ne pas refléter les fermetures exceptionnelles. Vérifiez directement auprès des établissements avant de vous déplacer.
+    <strong>Horaires habituels constatés :</strong> ces informations sont susceptibles de varier selon la saison. Vérifiez directement auprès des établissements avant de vous déplacer.
   </div>
 
 </main>
 
 <script>
-  // =============================================
-  // REMPLACE ICI TA CLÉ API (ne pas partager)
-  // =============================================
-  const API_KEY = 'AIzaSyCr0WexFyIPWQWv-VJiofIvqOVk76bDIpw';
-  // =============================================
-
-  const PLACES = [
-    { name: "Le Pain de Sucre",   id: "ChIJIa8XaRMPEkgRvoTtwRKFp_A" },
-    { name: "L'Alegoat",          id: "ChIJkb12iAEQEkgRZf3zp0m3yvE" },
-    { name: "La Potinière",       id: "ChIJ1S-OIFUFEkgR6GQ8KzAVcMA" },
-    { name: "Le 22",              id: "ChIJfadwMpwREkgR-CwE61MU_sU" },
-    { name: "Bellevue",           id: "ChIJ12oME6oaEkgR-puWcvDcVyk" },
-    { name: "Carrefour Market",   id: "ChIJkVtjPtIPEkgRqV5iZ68xJJA" },
-    { name: "Bréhat Services",    id: "ChIJ7d6eBQAREkgRlW_zdFzWCAM" },
-    { name: "La Bréhatine",       id: "ChIJtYImAcEPEkgRb323CQuX4E4" },
-    { name: "Crech Kerio",        id: "ChIJL-c-ZAAQEkgRPR9uUZ7xFaQ" },
-    { name: "Shamrock",           id: "ChIJ58f9HP4PEkgROVRK9un-xZk" },
-    { name: "L'Archipel",         id: "ChIJO2e-OxwREkgRqNPkK9PXfRw" },
-    { name: "Les Verreries",      id: "ChIJqcr_VKgaEkgRjPTw_gzgsEQ" },
-    { name: "Dalibot",            id: "ChIJIdF3pwAQEkgRTz_6E8_Rtb8" },
-    { name: "L'Equipage",         id: "ChIJ58f9HP4PEkgRq0lERbLX12c" },
-    { name: "L'Epicerie",         id: "ChIJNVgOAwIQEkgR6kTg5GyLQwc" }
-  ];
-
   const DAY_NAMES = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
   const MONTH_NAMES = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+  const PLACES = [
+    {
+      name: "Le Pain de Sucre",
+      phone: "02 96 55 03 83",
+      lat: 48.84575211082323, lng: -3.0005820339417086,
+      hours: ["8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30"]
+    },
+    {
+      name: "Bistrot de l'Allegoat",
+      phone: "02 96 20 08 05",
+      lat: 48.845998284063164, lng: -3.0017727053200356,
+      hours: ["10h30–14h00, 17h30–22h30", null, "10h30–14h00, 17h30–22h30","10h30–14h00, 17h30–22h30","10h30–14h00, 17h30–22h30","10h30–14h00, 17h30–23h30","10h30–14h00, 17h30–23h30"]
+    },
+    {
+      name: "La Potinière",
+      phone: "06 46 85 01 01",
+      note: "Horaires selon la météo",
+      lat: 48.83851765933705, lng: -2.997310757611797,
+      hours: ["12h00–14h00, 15h30–20h30","12h00–14h00, 15h30–17h30", null,"12h00–14h00, 15h30–17h30","12h00–14h00, 15h30–17h30","12h00–14h00, 15h30–20h30","12h00–14h30"]
+    },
+    {
+      name: "Restaurant Le 22",
+      phone: "02 96 20 80 26",
+      lat: 48.845736154456304, lng: -3.002430434663358,
+      hours: ["9h00–22h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–15h00","9h00–15h00"]
+    },
+    {
+      name: "Bellevue",
+      phone: "02 96 20 00 05",
+      lat: 48.8410334073014, lng: -3.0028955879203476,
+      hours: ["12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45","12h15–14h00, 19h00–20h45"]
+    },
+    {
+      name: "Carrefour Express",
+      phone: "02 96 20 08 54",
+      lat: 48.845426216713015, lng: -2.999293933417953,
+      hours: ["9h00–13h00","9h00–20h00","9h00–20h00","9h00–20h00","9h00–20h00","9h00–20h00","9h00–20h00"]
+    },
+    {
+      name: "Bréhat Services",
+      phone: "02 96 20 04 15",
+      lat: 48.8455930270572, lng: -2.999974330622317,
+      hours: [null,"9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00"]
+    },
+    {
+      name: "Ma Bréhatine",
+      phone: "02 96 20 06 30",
+      lat: 48.84560540332716, lng: -2.9999266996924696,
+      hours: ["9h30–21h00","9h30–21h00", null,"9h30–19h30","9h30–19h30","9h30–19h30","9h30–19h30"]
+    },
+    {
+      name: "Le Crech-Kerio",
+      phone: "02 96 20 00 95",
+      lat: 48.8421243474216, lng: -3.0015078007154066,
+      hours: ["12h00–14h00, 19h00–21h00","12h00–14h00", null,"12h00–14h00, 19h00–21h00","12h00–14h00, 19h00–21h00","12h00–14h00, 19h00–21h00","12h00–14h00, 19h00–21h00"]
+    },
+    {
+      name: "Le Shamrock",
+      phone: null,
+      lat: 48.84615197695278, lng: -3.0003806951171965,
+      hours: ["12h00–14h00", null,"12h00–14h00, 19h00–20h30","9h00–14h00, 19h00–20h30","12h00–14h00, 19h00–20h30","12h00–14h00, 19h00–20h30","12h00–14h00, 19h00–20h30"]
+    },
+    {
+      name: "L'Archipel",
+      phone: "02 96 20 04 15",
+      lat: 48.84597069972059, lng: -3.000408210654863,
+      hours: ["10h00–17h30","10h00–18h30","10h00–18h30","10h00–18h30","10h00–18h30","10h00–18h30","10h00–18h30"]
+    },
+    {
+      name: "Les Verreries de Bréhat",
+      phone: "02 96 20 09 09",
+      lat: 48.83872980501587, lng: -3.0078395760940606,
+      hours: [null,"10h00–13h00, 14h00–17h30","10h00–13h00, 14h00–17h30","10h00–13h00, 14h00–17h30","10h00–13h00, 14h00–17h30","10h00–13h00, 14h00–17h30","10h00–13h00, 14h00–16h30"]
+    },
+    {
+      name: "Dalibot — Location de vélos",
+      phone: "02 96 20 03 51",
+      lat: 48.84090413431144, lng: -3.002227106958639,
+      hours: ["9h30–19h00","9h30–19h00","9h30–19h00","9h30–19h00","9h30–19h00","9h30–19h00","9h30–19h00"]
+    },
+    {
+      name: "L'Équipage",
+      phone: "02 96 22 08 31",
+      lat: 48.84569840037311, lng: -3.0000360744265353,
+      hours: ["9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30"]
+    },
+    {
+      name: "L'Épicerie de Bréhat",
+      phone: "02 96 20 00 44",
+      lat: 48.8464383799326, lng: -2.9999384320973963,
+      hours: ["9h00–13h00","9h00–13h00", null,"9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00"]
+    }
+  ];
 
   let currentDate = new Date();
   currentDate.setHours(0,0,0,0);
@@ -520,245 +629,142 @@
     document.getElementById('date-display').textContent = formatDate(currentDate);
   }
 
+  function isToday(d) {
+    const t = new Date(); t.setHours(0,0,0,0);
+    return d.getTime() === t.getTime();
+  }
+
+  function isOpenNow(place) {
+    const h = place.hours[currentDate.getDay()];
+    if (!h) return false;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const ranges = h.split(',').map(s => s.trim());
+    for (const range of ranges) {
+      const parts = range.split('–');
+      if (parts.length === 2) {
+        const parseTime = t => {
+          const [hh, mm] = t.replace('h', ':').split(':').map(Number);
+          return hh * 60 + (mm || 0);
+        };
+        if (nowMin >= parseTime(parts[0]) && nowMin < parseTime(parts[1])) return true;
+      }
+    }
+    return false;
+  }
+
+  function buildWeekSchedule(place) {
+    const todayIdx = new Date().getDay();
+    // Construire la semaine en commençant par lundi
+    const order = [1,2,3,4,5,6,0]; // lun à dim
+    return order.map(i => {
+      const h = place.hours[i];
+      const isT = (i === todayIdx);
+      return `<div class="week-row">
+        <span class="week-day${isT ? ' today' : ''}">${DAY_NAMES[i]}</span>
+        <span class="week-hours${!h ? ' closed' : ''}">${h || 'Fermé'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function buildCards() {
+    const list = document.getElementById('commerce-list');
+    list.innerHTML = '';
+    const dayIdx = currentDate.getDay();
+
+    PLACES.forEach((place, idx) => {
+      const h = place.hours[dayIdx];
+      let isOpen;
+      if (isToday(currentDate)) {
+        isOpen = isOpenNow(place);
+      } else {
+        isOpen = h !== null && h !== undefined;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'commerce-card' + (isOpen ? ' open-now' : (h ? '' : ' closed-now'));
+
+      let badgeClass, badgeLabel;
+      if (isToday(currentDate)) {
+        if (isOpen) { badgeClass = 'status-open'; badgeLabel = 'Ouvert'; }
+        else if (!h) { badgeClass = 'status-closed'; badgeLabel = 'Fermé'; }
+        else { badgeClass = 'status-open'; badgeLabel = 'Ouvert aujourd\'hui'; }
+      } else {
+        badgeClass = h ? 'status-open' : 'status-closed';
+        badgeLabel = h ? 'Ouvert' : 'Fermé';
+      }
+
+      const weekId = `week-${idx}`;
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="commerce-name">${place.name}</span>
+          <div class="card-right">
+            <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+            <button class="toggle-week" data-target="${weekId}" title="Voir les horaires de la semaine">&#x25BE;</button>
+          </div>
+        </div>
+        ${h ? `<div class="commerce-hours">${h}</div>` : '<div class="commerce-hours">Fermé ce jour</div>'}
+        ${place.note ? `<div class="commerce-note">${place.note}</div>` : ''}
+        ${place.phone ? `<div class="commerce-phone"><a href="tel:${place.phone.replace(/\s/g,'')}">${place.phone}</a></div>` : ''}
+        <div class="week-schedule" id="${weekId}">
+          ${buildWeekSchedule(place)}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    // Gestion des toggles
+    document.querySelectorAll('.toggle-week').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        const open = target.classList.toggle('visible');
+        btn.classList.toggle('open', open);
+      });
+    });
+  }
+
+  function initMap() {
+    const map = L.map('map').setView([48.844, -3.006], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19
+    }).addTo(map);
+
+    const markerIcon = L.divIcon({
+      className: '',
+      html: '<div style="width:14px;height:14px;background:#c0844a;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>',
+      iconSize: [14,14], iconAnchor: [7,7], popupAnchor: [0,-10]
+    });
+
+    PLACES.forEach(place => {
+      const dayIdx = new Date().getDay();
+      const h = place.hours[dayIdx];
+      const marker = L.marker([place.lat, place.lng], { icon: markerIcon }).addTo(map);
+      marker.bindPopup(`
+        <div style="font-family:'DM Sans',sans-serif;min-width:140px">
+          <div style="font-family:'Playfair Display',serif;font-weight:600;font-size:0.95rem;color:#1a3a4a;margin-bottom:4px">${place.name}</div>
+          <div style="font-size:0.8rem;font-weight:500;color:${h ? '#2d6a4f' : '#9b2335'}">${h ? 'Ouvert' : 'Fermé'}</div>
+          ${h ? `<div style="font-size:0.78rem;color:#6b7280;margin-top:2px">${h}</div>` : ''}
+          ${place.phone ? `<div style="margin-top:4px;font-size:0.82rem"><a href="tel:${place.phone.replace(/\s/g,'')}" style="color:#c0844a;text-decoration:none">${place.phone}</a></div>` : ''}
+        </div>
+      `);
+    });
+  }
+
   document.getElementById('prev-day').addEventListener('click', () => {
     currentDate.setDate(currentDate.getDate() - 1);
-    updateDateDisplay();
-    loadAllPlaces();
+    updateDateDisplay(); buildCards();
   });
 
   document.getElementById('next-day').addEventListener('click', () => {
     currentDate.setDate(currentDate.getDate() + 1);
-    updateDateDisplay();
-    loadAllPlaces();
+    updateDateDisplay(); buildCards();
   });
 
   updateDateDisplay();
-
-  // Vérif clé API
-  if (API_KEY === 'AIzaSyCr0WexFyIPWQWv-VJiofIvqOVk76bDIpw') {
-    document.getElementById('key-warning').style.display = 'block';
-  }
-
-  // Chargement Places API via SDK JS
-  let map, service, infoWindow;
-
-  function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
-      center: { lat: 48.844, lng: -3.006 },
-      zoom: 14,
-      styles: [
-        { featureType: "water", stylers: [{ color: "#a8c8d8" }] },
-        { featureType: "landscape", stylers: [{ color: "#f5f0e8" }] },
-        { featureType: "road", stylers: [{ color: "#ddd3ba" }] }
-      ]
-    });
-    service = new google.maps.places.PlacesService(map);
-    infoWindow = new google.maps.InfoWindow();
-    loadAllPlaces();
-  }
-
-  function getDayHours(openingHours, targetDate) {
-    if (!openingHours || !openingHours.weekday_text) return null;
-    const dayIdx = targetDate.getDay(); // 0=dim
-    // weekday_text commence lundi=0 dans l'API, dimanche=6
-    const apiIdx = dayIdx === 0 ? 6 : dayIdx - 1;
-    return openingHours.weekday_text[apiIdx] || null;
-  }
-
-  function isOpenOnDay(openingHours, targetDate) {
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    if (targetDate.getTime() === today.getTime()) {
-      return openingHours?.open_now ?? null;
-    }
-    const hours = getDayHours(openingHours, targetDate);
-    if (!hours) return null;
-    const lower = hours.toLowerCase();
-    if (lower.includes('fermé') || lower.includes('closed')) return false;
-    return true;
-  }
-
-  const placeData = {};
-
-  // Cache : clé = date YYYY-MM-DD, expire à minuit
-  const CACHE_KEY = 'digor_cache';
-
-  function getCacheKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-  }
-
-  function loadCache() {
-    try {
-      const raw = sessionStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const { key, data } = JSON.parse(raw);
-      if (key !== getCacheKey()) return null;
-      return data;
-    } catch(e) { return null; }
-  }
-
-  function saveCache(data) {
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ key: getCacheKey(), data }));
-    } catch(e) {}
-  }
-
-  function loadAllPlaces() {
-    const list = document.getElementById('commerce-list');
-
-    // Essayer le cache d'abord
-    const cached = loadCache();
-    if (cached) {
-      list.innerHTML = '';
-      cached.forEach(({ place, result, status }) => {
-        placeData[place.id] = { result, status };
-        const card = buildCard(place, result, status);
-        list.appendChild(card);
-        // Pour les marqueurs depuis le cache, reconstruire la position manuellement
-        if (status === 'OK' && result && result.geometry && result.geometry.location) {
-          const fakeResult = Object.assign({}, result, {
-            geometry: {
-              location: new google.maps.LatLng(
-                result.geometry.location.lat,
-                result.geometry.location.lng
-              )
-            }
-          });
-          addMarker(place.name, fakeResult, map, infoWindow);
-        }
-      });
-      return;
-    }
-
-    list.innerHTML = '<div class="loading-card">Chargement des horaires...</div>';
-
-    const promises = PLACES.map(p => new Promise((resolve) => {
-      service.getDetails({
-        placeId: p.id,
-        fields: ['name', 'opening_hours', 'formatted_phone_number', 'geometry']
-      }, (result, status) => {
-        resolve({ place: p, result, status });
-      });
-    }));
-
-    Promise.all(promises).then(results => {
-      // Sérialiser pour le cache (geometry n'est pas sérialisable directement)
-      const serializable = results.map(({ place, result, status }) => ({
-        place,
-        status,
-        result: result ? {
-          name: result.name,
-          formatted_phone_number: result.formatted_phone_number,
-          opening_hours: result.opening_hours,
-          geometry: result.geometry ? {
-            location: {
-              lat: result.geometry.location.lat(),
-              lng: result.geometry.location.lng()
-            }
-          } : null
-        } : null
-      }));
-      saveCache(serializable);
-
-      list.innerHTML = '';
-      results.forEach(({ place, result, status }) => {
-        placeData[place.id] = { result, status };
-        const card = buildCard(place, result, status);
-        list.appendChild(card);
-        if (status === 'OK' && result.geometry) {
-          addMarker(place.name, result, map, infoWindow);
-        }
-      });
-    });
-  }
-
-  function buildCard(place, result, status) {
-    const card = document.createElement('div');
-    card.className = 'commerce-card';
-
-    if (status !== 'OK') {
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="commerce-name">${place.name}</span>
-          <span class="status-badge status-unknown">Indisponible</span>
-        </div>
-        <div class="commerce-hours">Impossible de récupérer les informations.</div>`;
-      return card;
-    }
-
-    const oh = result.opening_hours;
-    const isOpen = isOpenOnDay(oh, currentDate);
-    const hours = getDayHours(oh, currentDate);
-    const phone = result.formatted_phone_number;
-
-    let statusClass = '', statusLabel = '', badgeClass = '';
-    if (isOpen === true) {
-      statusClass = 'open-now'; statusLabel = 'Ouvert'; badgeClass = 'status-open';
-    } else if (isOpen === false) {
-      statusClass = 'closed-now'; statusLabel = 'Fermé'; badgeClass = 'status-closed';
-    } else {
-      statusLabel = 'Horaires non renseignés'; badgeClass = 'status-unknown';
-    }
-
-    if (statusClass) card.classList.add(statusClass);
-
-    // Nettoyer le texte de l'API (ex: "Lundi: 09:00 – 19:00" → "09:00 – 19:00")
-    let hoursText = '';
-    if (hours) {
-      const colonIdx = hours.indexOf(':');
-      hoursText = colonIdx !== -1 ? hours.substring(colonIdx + 1).trim() : hours;
-    }
-
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="commerce-name">${result.name || place.name}</span>
-        <span class="status-badge ${badgeClass}">${statusLabel}</span>
-      </div>
-      ${hoursText ? `<div class="commerce-hours">${hoursText}</div>` : ''}
-      ${phone ? `<div class="commerce-phone"><a href="tel:${phone.replace(/\s/g,'')}">${phone}</a></div>` : ''}
-    `;
-    return card;
-  }
-
-  function addMarker(name, result, map, infoWindow) {
-    const marker = new google.maps.Marker({
-      map,
-      position: result.geometry.location,
-      title: name,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        fillColor: '#c0844a',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2
-      }
-    });
-
-    marker.addListener('click', () => {
-      const oh = result.opening_hours;
-      const phone = result.formatted_phone_number;
-      const isOpen = isOpenOnDay(oh, currentDate);
-      const status = isOpen === true ? '<span style="color:#2d6a4f;font-weight:500">Ouvert</span>'
-                   : isOpen === false ? '<span style="color:#9b2335;font-weight:500">Fermé</span>'
-                   : '';
-      infoWindow.setContent(`
-        <div style="font-family:'DM Sans',sans-serif;padding:4px 2px;min-width:140px">
-          <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${result.name || name}</div>
-          ${status}
-          ${phone ? `<div style="margin-top:4px;font-size:0.82rem"><a href="tel:${phone.replace(/\s/g,'')}" style="color:#c0844a">${phone}</a></div>` : ''}
-        </div>
-      `);
-      infoWindow.open(map, marker);
-    });
-  }
-</script>
-
-<!-- Chargement Google Maps JS API avec Places -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=VOTRE_CLE_API&libraries=places&callback=initMap"
-  async defer>
+  buildCards();
+  initMap();
 </script>
 
 </body>
