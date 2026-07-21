@@ -55,19 +55,18 @@
       position: absolute;
       top: 1rem;
       left: 1rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.03em;
+      line-height: 0;
     }
 
     .header-home a {
+      display: inline-flex;
       color: #9ab0bc;
-      text-decoration: none;
-      border-bottom: 1px solid rgba(154,176,188,0.4);
-      padding-bottom: 1px;
       transition: color 0.2s;
     }
 
     .header-home a:hover { color: var(--sand); }
+
+    .header-home svg { width: 20px; height: 20px; }
 
     .header-title {
       display: flex;
@@ -379,7 +378,7 @@
 <body>
 
 <header>
-  <div class="header-home"><a href="https://www.didoune.com">Didoune.com</a></div>
+  <div class="header-home"><a href="https://www.didoune.com" title="Retour à Didoune.com" aria-label="Retour à Didoune.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></a></div>
   <div class="header-title">
     <img src="blason-brehat.svg" alt="Blason de Bréhat" />
     <h1>Digor</h1>
@@ -399,7 +398,7 @@
   </div>
   <div id="commerce-list"></div>
 
-  <div class="hours-notice" style="margin-bottom:2rem">Horaires relevés sur Google Maps en mai 2026, susceptibles de modification selon la saison.<br>"Ouvert aujourd'hui" signifie que ce commerce n'est pas ouvert en ce moment mais le sera plus tard dans la journée. Cliquez sur ▾ pour voir les horaires habituels sur une semaine.</div>
+  <div class="hours-notice" style="margin-bottom:2rem">Horaires relevés sur Google Maps en juillet 2026, susceptibles de modification selon la saison.<br>"Ouvert aujourd'hui" signifie que ce commerce n'est pas ouvert en ce moment mais le sera plus tard dans la journée. Cliquez sur ▾ pour voir les horaires habituels sur une semaine.</div>
 
   <div id="map-section">
     <span class="section-title">Sur la carte</span>
@@ -438,6 +437,14 @@
       <div class="info-item">
         <span class="info-label">Compagnie Sur Mer</span>
         <span class="info-value"><a href="tel:0637659171">06 37 65 91 71</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Transport Louail</span>
+        <span class="info-value"><a href="tel:0296200406">02 96 20 04 06</a></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Bréhat Evasion (balades en mer)</span>
+        <span class="info-value"><a href="tel:0680950678">06 80 95 06 78</a></span>
       </div>
     </div>
 
@@ -515,10 +522,6 @@
     </div>
   </div>
 
-  <div class="disclaimer">
-    <strong>Horaires habituels constatés :</strong> ces informations sont susceptibles de varier selon la saison. Vérifiez directement auprès des établissements avant de vous déplacer.
-  </div>
-
 </main>
 
 <script>
@@ -530,7 +533,7 @@
       name: "Le Pain de Sucre",
       phone: "02 96 55 03 83",
       lat: 48.84575211082323, lng: -3.0005820339417086,
-      hours: ["8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30","8h30–17h30"]
+      hours: ["8h00–19h00","8h00–19h00","8h00–19h00","8h00–19h00","8h00–19h00","8h00–19h00","8h00–19h00"]
     },
     {
       name: "Bistrot de l'Allegoat",
@@ -549,7 +552,7 @@
       name: "Restaurant Le 22",
       phone: "02 96 20 80 26",
       lat: 48.845736154456304, lng: -3.002430434663358,
-      hours: ["9h00–22h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–15h00","9h00–15h00"]
+      hours: ["9h00–15h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–22h00","9h00–15h00","9h00–15h00"]
     },
     {
       name: "Bellevue",
@@ -567,13 +570,13 @@
       name: "Bréhat Services",
       phone: "02 96 20 04 15",
       lat: 48.8455930270572, lng: -2.999974330622317,
-      hours: [null,"9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00","9h00–18h00"]
+      hours: ["10h00–13h00","9h00–13h00, 15h00–18h00","9h00–13h00, 15h00–18h00","9h00–13h00, 15h00–18h00","9h00–13h00, 15h00–18h00","9h00–13h00, 15h00–18h00","9h00–13h00, 15h00–18h00"]
     },
     {
       name: "Ma Bréhatine",
       phone: "02 96 20 06 30",
       lat: 48.84560540332716, lng: -2.9999266996924696,
-      hours: ["9h30–21h00","9h30–21h00", null,"9h30–19h30","9h30–19h30","9h30–19h30","9h30–19h30"]
+      hours: ["9h30–21h00","9h30–21h00","9h30–21h00","9h30–21h00","9h30–21h00","9h30–19h00", null]
     },
     {
       name: "Le Crech-Kerio",
@@ -609,20 +612,20 @@
       name: "L'Équipage",
       phone: "02 96 22 08 31",
       lat: 48.84569840037311, lng: -3.0000360744265353,
-      hours: ["9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30"]
+      hours: [null,"9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30","9h00–17h30", null]
     },
     {
       name: "L'Épicerie de Bréhat",
       phone: "02 96 20 00 44",
       lat: 48.8464383799326, lng: -2.9999384320973963,
-      hours: ["9h00–13h00","9h00–13h00", null,"9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00","9h00–13h00, 15h00–19h00"]
+      hours: ["9h00–13h00", null,"9h00–19h00","9h00–19h00","9h00–19h00","9h00–19h00","9h00–19h00"]
     },
     {
       name: "La Pépinière de Bréhat",
       phone: "06 86 12 86 09",
       note: "Ouverture d'avril à fin septembre",
       lat: 48.85328809969044, lng: -2.9966765161316973,
-      hours: ["14h00–17h00", null, "14h00–17h00","14h00–17h00","14h00–17h00","14h00–17h00","14h00–17h00"]
+      hours: [null,"14h00–17h00","14h00–17h00","14h00–17h00","14h00–17h00","14h00–17h00","14h00–17h00"]
     }
   ];
 
